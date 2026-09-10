@@ -1,0 +1,146 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": []
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "code",
+      "source": [
+        "import pandas as pd\n",
+        "import matplotlib.pyplot as plt\n",
+        "import seaborn as sns\n",
+        "\n",
+        "print(\"--- AYLIK BÜTÇE VE HARCAMA ANALİZİ ---\")\n",
+        "\n",
+        "gelir = float(input(\"Bu ayki toplam geliriniz (TL): \"))\n",
+        "\n",
+        "sabit_kategoriler = ['Kira', 'Mutfak', 'Fatura', 'Eğlence', 'Ulaşım', 'Diğer']\n",
+        "harcamalar = []\n",
+        "\n",
+        "print(\"\\n--- Harcama Girişi ---\")\n",
+        "print(\"İlgili kategori için harcamanız yoksa '0' yazıp geçebilirsiniz.\\n\")\n",
+        "\n",
+        "for kategori in sabit_kategoriler:\n",
+        "    tutar = float(input(f\"'{kategori}' için toplam harcama (TL): \"))\n",
+        "\n",
+        "    if tutar > 0:\n",
+        "        print(f\"  '{kategori}' harcaması ağırlıklı olarak ne zaman yapıldı?\")\n",
+        "        print(\"  1 - Hafta İçi\")\n",
+        "        print(\"  2 - Hafta Sonu\")\n",
+        "        secim = input(\"  Seçiminiz (1 veya 2): \").strip()\n",
+        "\n",
+        "        zaman = \"Hafta Sonu\" if secim == '2' else \"Hafta İçi\"\n",
+        "\n",
+        "        harcamalar.append({\n",
+        "            'Kategori': kategori,\n",
+        "            'Tutar': tutar,\n",
+        "            'Zaman': zaman\n",
+        "        })\n",
+        "        print()\n",
+        "\n",
+        "df = pd.DataFrame(harcamalar)\n",
+        "\n",
+        "toplam_harcama = df['Tutar'].sum()\n",
+        "kalan_bakiye = gelir - toplam_harcama\n",
+        "\n",
+        "en_cok_harcanan_kategori = df.groupby('Kategori')['Tutar'].sum().idxmax()\n",
+        "kategori_max_tutar = df.groupby('Kategori')['Tutar'].sum().max()\n",
+        "\n",
+        "zaman_analizi = df.groupby('Zaman')['Tutar'].sum()\n",
+        "en_cok_harcanan_zaman = zaman_analizi.idxmax()\n",
+        "zaman_max_tutar = zaman_analizi.max()\n",
+        "\n",
+        "# --- ÖZET ANALİZ RAPORU ---\n",
+        "print(\"\\n\" + \"=\"*45)\n",
+        "print(\"             ANALİZ SONUÇLARI             \")\n",
+        "print(\"=\"*45)\n",
+        "print(f\"Aylık Gelir           : {gelir:,.2f} TL\")\n",
+        "print(f\"Toplam Harcama        : {toplam_harcama:,.2f} TL\")\n",
+        "print(f\"KALAN BAKİYE          : {kalan_bakiye:,.2f} TL\")\n",
+        "print(\"-\" * 45)\n",
+        "print(f\" En Çok Harcanan Alan   : {en_cok_harcanan_kategori} ({kategori_max_tutar:,.2f} TL)\")\n",
+        "print(f\" En Çok Harcanan Dönem  : {en_cok_harcanan_zaman} ({zaman_max_tutar:,.2f} TL)\")\n",
+        "print(\"=\"*45 + \"\\n\")\n",
+        "\n",
+        "plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')\n",
+        "fig, axes = plt.subplots(1, 2, figsize=(14,6))\n",
+        "\n",
+        "renkler = [\n",
+        "    '#FFB7B2',\n",
+        "    '#AEC6CF',\n",
+        "    '#C3B1E1',\n",
+        "    '#B39EB5',\n",
+        "    '#FFDAC1',\n",
+        "    '#E6E6FA'\n",
+        "]\n",
+        "\n",
+        "kategori_df = df.groupby('Kategori')['Tutar'].sum()\n",
+        "axes[0].pie(\n",
+        "    kategori_df,\n",
+        "    labels=kategori_df.index,\n",
+        "    autopct='%1.1f%%',\n",
+        "    startangle=90,\n",
+        "    colors=renkler[:len(kategori_df)]\n",
+        ")\n",
+        "axes[0].set_title(\"Harcamaların Kategorilere Göre Dağılımı (%)\", fontsize=12, fontweight='bold')\n",
+        "\n",
+        "sns.barplot(\n",
+        "    x=zaman_analizi.index,\n",
+        "    y=zaman_analizi.values,\n",
+        "    hue=zaman_analizi.index,\n",
+        "    ax=axes[1],\n",
+        "    palette=['#AEC6CF', '#FFB7B2'],\n",
+        "    legend=False\n",
+        ")\n",
+        "axes[1].set_title(\"Hafta İçi vs Hafta Sonu Harcama Karşılaştırması (TL)\", fontsize=12, fontweight='bold')\n",
+        "axes[1].set_ylabel(\"Tutar (TL)\")\n",
+        "axes[1].set_xlabel(\"Dönem\")\n",
+        "\n",
+        "plt.tight_layout()\n",
+        "plt.show()\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 564
+        },
+        "id": "WuyLoyZQhCB1",
+        "outputId": "4476a23b-8624-44c3-f1a0-da367a580f8d"
+      },
+      "execution_count": 9,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "--- AYLIK BÜTÇE VE HARCAMA ANALİZİ ---\n"
+          ]
+        },
+        {
+          "output_type": "error",
+          "ename": "KeyboardInterrupt",
+          "evalue": "Interrupted by user",
+          "traceback": [
+            "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+            "\u001b[0;31mKeyboardInterrupt\u001b[0m                         Traceback (most recent call last)",
+            "\u001b[0;32m/tmp/ipykernel_3021/492250458.py\u001b[0m in \u001b[0;36m<cell line: 0>\u001b[0;34m()\u001b[0m\n\u001b[1;32m      5\u001b[0m \u001b[0mprint\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m\"--- AYLIK BÜTÇE VE HARCAMA ANALİZİ ---\"\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      6\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m----> 7\u001b[0;31m \u001b[0mgelir\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mfloat\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0minput\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m\"Bu ayki toplam geliriniz (TL): \"\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      8\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      9\u001b[0m \u001b[0msabit_kategoriler\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0;34m[\u001b[0m\u001b[0;34m'Kira'\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m'Mutfak'\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m'Fatura'\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m'Eğlence'\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m'Ulaşım'\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m'Diğer'\u001b[0m\u001b[0;34m]\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.13/dist-packages/ipykernel/kernelbase.py\u001b[0m in \u001b[0;36mraw_input\u001b[0;34m(self, prompt)\u001b[0m\n\u001b[1;32m   1175\u001b[0m                 \u001b[0;34m\"raw_input was called, but this frontend does not support input requests.\"\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   1176\u001b[0m             )\n\u001b[0;32m-> 1177\u001b[0;31m         return self._input_request(\n\u001b[0m\u001b[1;32m   1178\u001b[0m             \u001b[0mstr\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mprompt\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   1179\u001b[0m             \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_parent_ident\u001b[0m\u001b[0;34m[\u001b[0m\u001b[0;34m\"shell\"\u001b[0m\u001b[0;34m]\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.13/dist-packages/ipykernel/kernelbase.py\u001b[0m in \u001b[0;36m_input_request\u001b[0;34m(self, prompt, ident, parent, password)\u001b[0m\n\u001b[1;32m   1217\u001b[0m             \u001b[0;32mexcept\u001b[0m \u001b[0mKeyboardInterrupt\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   1218\u001b[0m                 \u001b[0;31m# re-raise KeyboardInterrupt, to truncate traceback\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m-> 1219\u001b[0;31m                 \u001b[0;32mraise\u001b[0m \u001b[0mKeyboardInterrupt\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m\"Interrupted by user\"\u001b[0m\u001b[0;34m)\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0;32mNone\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m   1220\u001b[0m             \u001b[0;32mexcept\u001b[0m \u001b[0mException\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   1221\u001b[0m                 \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mlog\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mwarning\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m\"Invalid Message:\"\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mexc_info\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0;32mTrue\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;31mKeyboardInterrupt\u001b[0m: Interrupted by user"
+          ]
+        }
+      ]
+    }
+  ]
+}
